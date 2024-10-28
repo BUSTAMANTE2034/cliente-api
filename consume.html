@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USGS Earthquake API Test</title>
+    <!-- Estilos para mejorar la apariencia de la página -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #0e4275;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+        .results {
+            margin-top: 20px;
+            background-color: #e6f2ff;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #0073e6;
+        }
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .result-item h4 {
+            margin: 0;
+            color: #005bb5;
+        }
+        .result-item p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Título principal de la página -->
+    <h1>Probar API de Earthquake en JS</h1>
+
+    <!-- Botón para iniciar la consulta a la API -->
+    <button id="fetchDataBtn">Obtener Datos de Terremotos</button>
+    
+    <!-- Contenedor para mostrar los resultados obtenidos de la API -->
+    <div class="results" id="results">
+        <!-- Los resultados se mostrarán aquí -->
+    </div>
+    
+    
+    <!-- Script para realizar la solicitud a la API y manejar la respuesta -->
+    <script>
+        // Evento para el botón que dispara la solicitud a la API cuando es presionado
+        document.getElementById('fetchDataBtn').addEventListener('click', function() {
+            // Realizar la solicitud a la API de USGS (Earthquake) con un límite de 10 resultados
+            fetch("https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=10")
+                .then(response => response.json())  // Convertir la respuesta a formato JSON
+                .then(data => {
+                    // Limpiar resultados anteriores antes de mostrar los nuevos
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+
+                    // Verificar si se obtuvieron resultados
+                    if (data.features && data.features.length > 0) {
+                        // Iterar sobre los resultados obtenidos y crear elementos HTML para mostrarlos
+                        data.features.forEach(feature => {
+                            const item = document.createElement('div');  // Crear un contenedor para cada resultado
+                            item.classList.add('result-item');  // Asignar clase CSS para estilos
+                            item.innerHTML = `
+                                <h4>${feature.properties.title}</h4>  <!-- Mostrar título del terremoto -->
+                                <p><strong>Latitud:</strong> ${feature.geometry.coordinates[1]}</p>  <!-- Mostrar latitud -->
+                                <p><strong>Longitud:</strong> ${feature.geometry.coordinates[0]}</p>  <!-- Mostrar longitud -->
+                                <p><strong>Magnitud:</strong> ${feature.properties.mag}</p>  <!-- Mostrar magnitud -->
+                                <p><strong>Lugar:</strong> ${feature.properties.place}</p>  <!-- Mostrar ubicación -->
+                                <p><strong>Profundidad (km):</strong> ${feature.geometry.coordinates[2]}</p>  <!-- Mostrar profundidad -->
+                                <p><strong>Fecha y Hora:</strong> ${new Date(feature.properties.time).toLocaleString()}</p>  <!-- Mostrar fecha y hora -->
+                            `;
+                            resultsDiv.appendChild(item);  // Añadir el resultado al contenedor de resultados
+                        });
+                    } else {
+                        // Si no se encontraron resultados, mostrar un mensaje informativo
+                        resultsDiv.innerHTML = '<p>No se encontraron resultados.</p>';
+                    }
+                })
+                .catch(error => {
+                    // Manejar errores y mostrar un mensaje en caso de fallo
+                    console.error('Error:', error);
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = `<p>Error al obtener datos: ${error.message}. Por favor, intenta nuevamente.</p>`;
+                });
+        });
+    </script>
+</body>
+</html>
+
